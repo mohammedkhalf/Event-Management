@@ -42,7 +42,7 @@ func (m EventModel) GetAll() ([]*Event, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := "SELECT owner_id, name, description, date, location FROM events"
+	query := "SELECT * FROM events"
 
 	rows, err := m.DB.QueryContext(ctx, query)
 
