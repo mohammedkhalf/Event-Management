@@ -38,32 +38,37 @@ func (m UserModel) Insert(user *User) error {
 
 }
 
-func (m *UserModel) Get(id int) (*User, error) {
+func (m *UserModel) getUser(query string, args ...interface{}) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	var user User
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.Email, &user.Name, &user.Password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (m *UserModel) Get(id int) (*User, error) {
 	// Explicitly select columns to avoid scan mismatch errors
 	query := `
         SELECT id, email, name, password 
         FROM users 
         WHERE id = $1
     `
+	return m.getUser(query, id)
+}
 
-	var user User
-
-	// Execute the query
-	err := m.DB.QueryRowContext(ctx, query, id).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Name,
-		&user.Password,
-	)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err // unexpected DB error
-	}
-
-	return &user, nil
+func (m *UserModel) GetByEmail(email string) (*User, error) {
+	// Explicitly select columns to avoid scan mismatch errors
+	query := `
+        SELECT id, email, name, password 
+        FROM users 
+        WHERE id = $1
+    `
+	return m.getUser(query, email)
 }
