@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -16,6 +17,8 @@ type User struct {
 	Name     string `json:"name"`
 	Password string `json:"-"`
 }
+
+var ErrNotFound = errors.New("user not found")
 
 func (m UserModel) Insert(user *User) error {
 
@@ -33,4 +36,34 @@ func (m UserModel) Insert(user *User) error {
 
 	return nil
 
+}
+
+func (m *UserModel) Get(id int) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Explicitly select columns to avoid scan mismatch errors
+	query := `
+        SELECT id, email, name, password 
+        FROM users 
+        WHERE id = $1
+    `
+
+	var user User
+
+	// Execute the query
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&user.Id,
+		&user.Email,
+		&user.Name,
+		&user.Password,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err // unexpected DB error
+	}
+
+	return &user, nil
 }
