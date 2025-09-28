@@ -16,7 +16,6 @@ type application struct {
 	port      int
 	jwtSecret string
 	models    database.Models
-	logger    *logrus.Logger
 }
 
 func main() {
