@@ -41,7 +41,7 @@ func (app *application) login(c *gin.Context) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(auth.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
 		return
 	}
 
@@ -52,7 +52,7 @@ func (app *application) login(c *gin.Context) {
 
 	tokenString, err := token.SignedString([]byte(app.jwtSecret))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generation token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -44,17 +45,17 @@ func (m *UserModel) getUser(query string, args ...interface{}) (*User, error) {
 
 	var user User
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.Email, &user.Name, &user.Password)
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil // No user found
 		}
-		return nil, err
+		return nil, fmt.Errorf("GetByEmail query failed: %w", err)
 	}
 	return &user, nil
 }
 
 func (m *UserModel) Get(id int) (*User, error) {
-	// Explicitly select columns to avoid scan mismatch errors
 	query := `
         SELECT id, email, name, password 
         FROM users 
@@ -64,11 +65,11 @@ func (m *UserModel) Get(id int) (*User, error) {
 }
 
 func (m *UserModel) GetByEmail(email string) (*User, error) {
-	// Explicitly select columns to avoid scan mismatch errors
+
 	query := `
-        SELECT id, email, name, password 
-        FROM users 
-        WHERE id = $1
-    `
+		SELECT id, email, name, password 
+		FROM users 
+		WHERE email = $1`
+
 	return m.getUser(query, email)
 }
