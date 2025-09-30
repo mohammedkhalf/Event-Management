@@ -1,0 +1,1 @@
+a REST API in Go using the Gin framework. it's event app where users can sign up, log in, create events, delete events, edit events and attend events. We will use JWT authentication, authorization to protect routes, middleware, SQL, migrations, and Swagger documentation.
